@@ -13,5 +13,26 @@ export default NextAuth({
     }),
   ],
   adapter: PrismaAdapter(prisma),
-  database: process.env.DATABASE_URL,
+  // database: process.env.DATABASE_URL,
+  secret: process.env.JWT_SECRET,
+  session: {
+    strategy: "jwt",
+  },
+  jwt: {
+    secret: process.env.JWT_SECRET,
+  },
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.role = user.email === process.env.ADMIN_EMAIL ? "ADMIN" : "USER";
+      }
+
+      return token;
+    },
+    async session({ session, token }) {
+      session.user.role = token.role;
+      return session;
+    },
+  },
+  debug: process.env.NODE_ENV === "development",
 });
